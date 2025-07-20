@@ -1,0 +1,276 @@
+#!/mnt/c/Users/Clinet/Documents/ray-bash/venv/bin/python
+
+import google.generativeai as genai
+from dotenv import load_dotenv
+import os
+import sys
+import platform
+import subprocess
+from datetime import datetime
+import shutil
+import re
+
+# Load API key from .env
+load_dotenv()
+genai.configure(api_key=os.getenv("API_KEY"))  # Secure API key loading
+
+# Get current working directory
+cwd = os.getcwd()
+
+# Merge user input from CLI into one string
+query = " ".join(sys.argv[1:])
+args = sys.argv[1:]
+query = " ".join(args)
+
+# Daemon trigger: `ray daemon`
+if args and args[0] == "daemon":
+    import asyncio
+    from modules.daemon import run_daemon
+
+    print("📡 Ray Daemon started. Listening for file triggers (ray_input.txt)...")
+    asyncio.run(run_daemon())
+    sys.exit()
+
+if not query:
+    print("You forgot to tell me what to do.")
+    sys.exit()
+
+# --- 1. Detect environment function ---
+def get_environment():
+    uname = platform.uname()
+    if "microsoft" in uname.release.lower():
+        return "wsl"
+    elif platform.system() == "Windows":
+        return "windows"
+    elif platform.system() == "Linux":
+        return "linux"
+    else:
+        return "unknown"
+
+# --- 2. Command mapping by task and environment ---
+COMMAND_MAP = {
+    "list_wifi": {
+        "wsl": "powershell.exe netsh wlan show networks",
+        "windows": "netsh wlan show networks",
+        "linux": "nmcli dev wifi list"
+    },
+    "open_chrome": {
+        "wsl": "powershell.exe start chrome",
+        "windows": "start chrome",
+        "linux": "google-chrome"
+    },
+}
+
+# --- 3. Run the command cross-platform ---
+def run_cross_platform_command(task_key):
+    env = get_environment()
+    cmd = COMMAND_MAP.get(task_key, {}).get(env)
+    if not cmd:
+        print(f" No command mapped for task '{task_key}' on '{env}' environment.")
+        return False
+
+    try:
+        print(f"Running on {env}: {cmd}\n")
+        subprocess.run(cmd, shell=True, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        return False
+
+# --- 4. Main Ray-i query dispatcher snippet ---
+query_lower = " ".join(sys.argv[1:]).lower()
+
+if "wifi" in query_lower and "list" in query_lower:
+    if run_cross_platform_command("list_wifi"):
+        sys.exit()
+    else:
+        print("⚠️ Falling back to Gemini response generation.")
+
+if "open chrome" in query_lower:
+    if run_cross_platform_command("open_chrome"):
+        sys.exit()
+    else:
+        print("⚠️ Falling back to Gemini response generation.")
+
+# Construct prompt for Gemini
+prompt = (
+    "You are an advanced Linux shell expert. Your job is to read a human's plain English instruction "
+    "and convert it into a safe, accurate bash command ONLY. Do not explain. No markdown. No comments. "
+    f"Only the raw command. Assume the user is currently in this path: {cwd}\n\n"
+    f"User input: {query}"
+)
+
+# Smart install fallback
+
+def suggest_manual_install(tool):
+    print(f"🛠️ Unable to auto-install '{tool}'. Suggesting manual installation...")
+    instructions = {
+        "node": "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt install -y nodejs",
+        "npx": "npm install -g npx",
+        "npm": "sudo apt install -y npm",
+        "code": (
+            "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg && "
+            "sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/ && "
+            "sudo sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/code stable main\" > /etc/apt/sources.list.d/vscode.list' && "
+            "sudo apt update && sudo apt install -y code"
+        ),
+        "ffmpeg": "sudo apt install -y ffmpeg",
+    }
+    script = instructions.get(tool.lower())
+    if script:
+        print(f"\n📜 Recommended manual install command for '{tool}':\n{script}")
+        choice = input("🧠 Want Ray to try running it for you now? (y/n): ").strip().lower()
+        if choice == "y":
+            subprocess.run(script, shell=True)
+        else:
+            print("❌ Manual install skipped.")
+    else:
+        print(f"❓ No specific instructions found for '{tool}'. Try checking the official documentation or install it manually.")
+
+def try_smart_install(package_name):
+    builtins = {"cd", "echo", "mkdir", "pwd", "clear", "alias", "exit"}
+    if package_name in builtins:
+        print(f"❌ '{package_name}' is a shell builtin and cannot be installed.")
+        return False
+
+    print(f"📦 Attempting to install '{package_name}' with apt...")
+
+    def apt_install():
+        return subprocess.run(
+            ["sudo", "apt", "install", "-y", package_name],
+            capture_output=True,
+            text=True,
+        )
+
+    result = apt_install()
+
+    if result.returncode == 0:
+        print(f"✅ '{package_name}' installed successfully.")
+        return True
+
+    print("❌ First install failed. Running: apt update --fix-missing...")
+    subprocess.run(["sudo", "apt", "update", "--fix-missing"], check=False)
+    result = apt_install()
+
+    if result.returncode == 0:
+        print(f"✅ '{package_name}' installed after updating.")
+        return True
+
+    if "Temporary failure resolving" in result.stderr:
+        print("🌐 DNS failure detected. Applying Google DNS fix to /etc/resolv.conf...")
+        try:
+            if not os.path.exists("/etc/resolv.conf.backup"):
+                shutil.copy("/etc/resolv.conf", "/etc/resolv.conf.backup")
+            with open("/etc/resolv.conf", "w") as resolv:
+                resolv.write("nameserver 8.8.8.8\n")
+        except Exception as dns_err:
+            print("❌ Failed to fix DNS:", dns_err)
+            return False
+
+        print("🔁 Retrying install after DNS fix...")
+        result = apt_install()
+        if result.returncode == 0:
+            print(f"✅ '{package_name}' installed after DNS fix.")
+            return True
+
+    print("❌ Install failed after all recovery steps:\n", result.stderr.strip())
+    suggest_manual_install(package_name)
+    return False
+
+# Use Gemini 2.5 Flash model to generate command
+try:
+    model = genai.GenerativeModel(model_name="gemini-2.5-flash")
+    response = model.generate_content(prompt)
+    command = response.text.strip()
+
+    if "yt-dlp --get-url" in command and "ytsearch" not in command:
+        command = command.replace(
+            'yt-dlp --get-url "', 'yt-dlp --default-search "ytsearch" --get-url "'
+        )
+
+except Exception as e:
+    print("❌ Gemini failed:", e)
+    sys.exit()
+
+# Blacklist to catch dangerous commands
+dangerous = ["rm", "shutdown", "reboot", "mkfs", ":(){:|:&};:", "dd", "curl | sh"]
+
+# Show suggestion
+print(f"\n🧠 Ray-i Suggests: \033[92m{command}\033[0m")
+print(f"\n📍 In directory: {cwd}")
+
+# Ask user before executing
+confirm = input("⚠️  Do you want to run this command? (y/n): ").strip().lower()
+
+if confirm == "y":
+    try:
+        requires_sudo = any(cmd in command for cmd in ["apt", "rm", "mv", "shutdown", "reboot", "systemctl", "mkfs", "dd"])
+
+        if requires_sudo:
+            print("\n🔧 Executing with sudo...\n")
+            result = subprocess.run(["sudo", "bash", "-c", command], capture_output=True, text=True)
+        else:
+            print("\n🔧 Executing...\n")
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            print("❌ Execution failed:\n", result.stderr.strip())
+
+            if "command not found" in result.stderr:
+                match = re.search(r'bash:.*?: (\w+): command not found', result.stderr)
+                missing_cmd = match.group(1) if match else command.split()[0]
+                print(f"\n⚠️  Looks like '{missing_cmd}' is not installed.")
+                install = input(f"🛠️  Do you want me to try auto-installing '{missing_cmd}'? (y/n): ").strip().lower()
+                if install == "y":
+                    if try_smart_install(missing_cmd):
+                        print("🔁 Retrying your original command...\n")
+                        subprocess.run(["sudo", "bash", "-c", command], check=True)
+                        with open("rayi.log", "a") as log:
+                            log.write(f"[{datetime.now()}] {command}\n")
+                    else:
+                        print("❌ Sorry, auto-install failed even after DNS and mirror recovery.")
+                else:
+                    print("❌ Skipped auto-install.")
+            else:
+                print("⚠️ Unknown error occurred.")
+        else:
+            with open("rayi.log", "a") as log:
+                log.write(f"[{datetime.now()}] {command}\n")
+            print(result.stdout.strip())
+
+    except Exception as e:
+        print("❌ Unexpected error:", e)
+
+if query.lower().startswith("search "):
+    from modules.web_search import handle_search
+    handle_search(query[7:].strip())
+    sys.exit()
+
+elif query.lower().startswith("grab "):
+    from modules.stream_search import handle_stream
+    handle_stream(query[7:].strip())
+    sys.exit()
+
+if query.lower().startswith("dev"):
+    import asyncio
+    from modules.dev import run_dev_shell
+    asyncio.run(run_dev_shell())
+    sys.exit()
+
+# --- Port Scanning Command Dispatch ---
+if "scan" in query_lower and "port" in query_lower:
+    from modules.scan import run_port_scan
+
+    # Try to extract target IP or domain
+    match = re.search(r"\b(?:at|on)\s+([\w\.-]+)", query_lower)
+    target = match.group(1) if match else input("📍 Target IP or host to scan: ").strip()
+
+    # Optional: check for method override
+    method = None
+    for name in ["nmap", "rustscan", "masscan"]:
+        if name in query_lower:
+            method = name
+            break
+
+    run_port_scan(target, method)
+    sys.exit()

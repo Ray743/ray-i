@@ -1,0 +1,78 @@
+[2025-07-01 00:39:49.858684] ls -d */
+[2025-07-01 00:40:27.885397] ls -d */
+[2025-07-01 00:41:04.695120] ls
+[2025-07-01 22:53:10.123232] ls -d */
+[2025-07-01 22:53:49.678982] ls -d */
+[2025-07-01 22:54:24.449433] hostname -I
+[2025-07-01 22:57:27.642071] ip route show | awk '/default via/ {print $3}'
+[2025-07-01 23:10:09.125518] ip route | grep "default via" | awk '{print $3}'
+[2025-07-01 23:52:18.962489] nmap localhost
+[2025-07-01 23:55:31.816584] hostname -I
+[2025-07-02 00:34:08.429373] xdg-open "https://www.google.com/search?q=warm+by+SG+lewis+mp3+play"
+[2025-07-02 00:35:50.691182] yt-dlp -f bestaudio "ytsearch:warm by SG lewis"
+[2025-07-02 00:50:09.363602] ffplay "warm by SG lewis.MP3"
+[2025-07-02 00:52:12.824027] xdg-open "https://www.google.com/search?q=stream+warm+by+SG+Lewis+online"
+[2025-07-02 01:05:15.546475] xdg-open "https://www.youtube.com/results?search_query=The+Old+Guard+2+trailer"
+[2025-07-02 01:09:50.975273] xdg-open "https://www.google.com/search?q=australian+proxies"
+[2025-07-02 01:11:52.577326] sudo ss -lun
+[2025-07-02 01:17:31.749534] curl ifconfig.me
+[2025-07-02 01:20:49.707941] speedtest-cli
+[2025-07-02 01:22:38.963482] curl -s ipinfo.io/org
+[2025-07-02 01:28:45.008120] ping -c 4 8.8.8.8
+[2025-07-02 01:31:25.511669] curl ifconfig.me
+[2025-07-02 01:35:28.815558] echo
+[2025-07-02 01:40:58.313001] yt-dlp "ytsearch:Jericho by Iniko"
+[2025-07-02 01:45:11.168562] curl ipinfo.io/org
+[2025-07-02 01:46:51.745820] sudo ss -tulpn
+[2025-07-02 04:59:44.682041] df -h
+[2025-07-02 05:00:44.849240] ps aux
+[2025-07-02 05:22:56.413221] xdg-open "https://www.google.com/search?q=latest+news+USA+Iran"
+[2025-07-02 05:30:10.787825] sudo ip addr add $(ip route | awk '/default/{print $3}')/24 dev $(ip route | awk '/default/{print $5}')
+[2025-07-02 09:05:38.107251] mkdir modules
+[2025-07-02 09:11:50.061278] mkdir -p modules && touch modules/web_search.py
+[2025-07-02 09:12:38.733912] ls modules
+[2025-07-02 09:26:38.112128] xdg-open "https://www.google.com/search?q=best+laptops+for+programming+in+2025"
+[2025-07-02 09:29:32.099359] xdg-open "https://www.google.com/search?q=best+laptops+for+programming+in+2025"
+[2025-07-02 09:59:21.492860] find . -name "*Deadpool 3 full movie*"
+[2025-07-02 10:17:46.990675] mpv $(yt-dlp -g https://www.foxnews.com/live)
+[2025-07-02 10:22:55.307715] curl https://www.foxnews.com/live
+[2025-07-02 10:28:42.348549] yt-dlp https://www.youtube.com/user/FoxNews
+[2025-07-02 10:38:10.170768] find . -type f -iname "*deadpool*3*movie*"
+[2025-07-03 00:50:11.994777] mv ray_exec.py ray
+[2025-07-03 01:07:11.299321] ls -d */
+[2025-07-03 01:10:05.700613] find . -type f \( -iname "*.mp3" -o -iname "*.wav" -o -iname "*.flac" -o -iname "*.ogg" -o -iname "*.aac" -o -iname "*.m4a" -o -iname "*.wma" -o -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.mov" -o -iname "*.webm" -o -iname "*.flv" -o -iname "*.wmv" -o -iname "*.ts" -o -iname "*.mpg" -o -iname "*.mpeg" -o -iname "*.3gp" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.bmp" -o -iname "*.svg" -o -iname "*.webp" -o -iname "*.tiff" -o -iname "*.tif" -o -iname "*.heic" -o -iname "*.avif" -o -iname "*.ico" \)
+[2025-07-03 01:12:39.005246] find . -type f -regextype posix-egrep -regex ".*\.(jpg|jpeg|png|gif|bmp|tiff|svg|webp|mp3|wav|flac|ogg|m4a|aac|mp4|mkv|avi|mov|wmv|flv|webm)$" -print0 | du --files0-from=- -bc | tail -n1 | cut -f1 | numfmt --to=iec-i --suffix=B
+[2025-07-03 01:14:35.933598] find . -type f \( -iname "*.mp4" -o -iname "*.mov" -o -iname "*.avi" -o -iname "*.mkv" -o -iname "*.webm" -o -iname "*.flv" -o -iname "*.wmv" -o -iname "*.mpeg" -o -iname "*.mpg" -o -iname "*.3gp" -o -iname "*.mts" -o -iname "*.ts" \) -delete
+[2025-07-03 01:15:24.749133] find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.avi" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.flv" -o -iname "*.wmv" -o -iname "*.webm" -o -iname "*.mpg" -o -iname "*.mpeg" -o -iname "*.3gp" \) -printf '%f\n'
+[2025-07-03 02:31:06.209100] cd ..
+[2025-07-03 02:31:47.953379] cd /
+[2025-07-03 02:32:21.849310] systemctl list-units --type=service --state=running --no-pager
+[2025-07-03 02:33:09.227885] systemctl list-unit-files --type=service --no-legend | grep -E 'disabled|static|masked' | awk '{print $1}'
+[2025-07-03 02:35:39.991076] df -h
+`df -h`
+df -h
+df -h
+df -h
+[2025-07-03 02:42:12.856264] ps aux | sort -rnk 4 | head -n 10
+[2025-07-03 02:44:47.707746] who
+[2025-07-03 02:45:27.372129] uptime
+[2025-07-03 02:46:22.886604] lsblk
+[2025-07-03 02:47:23.631227] df -h
+[2025-07-03 02:48:44.647452] find /var -type f -exec du -b {} + | sort -rn
+[2025-07-03 02:49:23.168893] find /etc -type l
+[2025-07-03 02:50:17.551196] (getent group sudo; getent group wheel) | cut -d: -f4 | tr ',' '\n' | sort -u
+[2025-07-03 02:52:21.410161] find . -perm 777
+[2025-07-03 02:53:21.040547] sudo awk -F: '$5 == "" || $5 == 99999 {print $1}' /etc/shadow
+[2025-07-03 02:54:08.911967] ss -tuln
+[2025-07-03 02:55:23.540684] sudo nmap -sn $(ip addr show $(ip route | awk '/default/ {print $5; exit}') | grep "inet " | awk '{print $2}')
+[2025-07-03 02:56:08.520436] ip a
+[2025-07-03 02:56:57.029834] curl -I google.com
+[2025-07-03 02:57:42.531190] apt list --installed
+[2025-07-03 03:02:44.851019] find /home -type f | wc -l
+[2025-07-03 03:03:22.038252] tar -czf etc.tar.gz /etc
+[2025-07-03 03:05:02.608172] lshw -short
+[2025-07-03 03:06:25.247547] free -h
+[2025-07-03 03:07:04.793634] uname -a; cat /etc/os-release
+[2025-07-03 03:50:12.150735] cd /
+[2025-07-03 03:58:41.208297] exit
+[2025-07-03 08:01:40.130168] touch modules/coder.py

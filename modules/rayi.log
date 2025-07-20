@@ -1,0 +1,8 @@
+[2025-07-07 03:09:19.535429] cd /
+[2025-07-07 03:09:44.000141] cd /
+[2025-07-07 03:10:30.820735] dmesg -T
+[2025-07-07 03:11:20.520184] systemctl list-units --type=service --state=running
+[2025-07-07 03:12:46.599017] dmesg
+[2025-07-07 03:13:20.551253] find . -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.avi" -o -iname "*.webm" -o -iname "*.flv" -o -iname "*.wmv" \)
+[2025-07-07 03:13:51.223975] find . -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.mov" -o -iname "*.wmv" -o -iname "*.flv" -o -iname "*.webm" -o -iname "*.mpg" -o -iname "*.mpeg" -o -iname "*.ts" \) -print
+[2025-07-07 03:14:22.016100] find . -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.mov" -o -iname "*.wmv" -o -iname "*.flv" -o -iname "*.webm" -o -iname "*.mpg" -o -iname "*.mpeg" -o -iname "*.3gp" -o -iname "*.ts" -o -iname "*.vob" -o -iname "*.ogv" -o -iname "*.rm" -o -iname "*.rmvb" \)
